@@ -3,13 +3,12 @@ import { ConfigService } from '@nestjs/config';
 
 import { KafkajsAdmin } from './kafkajs';
 import { IAdmin } from '../contract';
-import { DatabaseService } from '../../database/database.service';
 
 @Injectable()
 export class AdminService implements OnApplicationShutdown {
     private readonly admins: IAdmin[] = [];
 
-    constructor(private readonly configService: ConfigService, private readonly databaserService: DatabaseService) {}
+    constructor(private readonly configService: ConfigService) {}
 
     async printInfo(opt: { printTopics: boolean; printGroups: boolean; printInfo: boolean }) {
         const admin = new KafkajsAdmin(this.configService.get('KAFKA_BROKER'), this.configService.get('APP_NAME'));
@@ -31,6 +30,13 @@ export class AdminService implements OnApplicationShutdown {
         }
 
         this.admins.push(admin);
+    }
+
+    async getAdmin() {
+        const admin = new KafkajsAdmin(this.configService.get('KAFKA_BROKER'), this.configService.get('APP_NAME'));
+        await admin.connect();
+        this.admins.push(admin);
+        return admin;
     }
 
     async onApplicationShutdown() {

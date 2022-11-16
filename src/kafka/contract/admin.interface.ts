@@ -1,4 +1,4 @@
-import { GroupDescriptions, ITopicConfig } from 'kafkajs';
+import { DeleteGroupsResult, GroupDescriptions, ITopicConfig, ITopicPartitionConfig } from 'kafkajs';
 
 export interface IAdmin {
     connect: () => Promise<void>;
@@ -12,7 +12,7 @@ export interface IAdmin {
         topics: ITopicConfig[];
     }) => Promise<{ success: boolean }>;
     deleteTopics: (options: { topics: string[]; timeout?: number }) => Promise<void>;
-    getInfo(groupIds?: string[]): Promise<{
+    getInfo: (groupIds?: string[]) => Promise<{
         cluster: {
             brokers: Array<{ nodeId: number; host: string; port: number }>;
             controller: number | null;
@@ -20,4 +20,10 @@ export interface IAdmin {
         };
         groups: GroupDescriptions;
     }>;
+    createPartitionsOnTopic: (options: {
+        validateOnly?: boolean;
+        timeout?: number;
+        topicPartitions: ITopicPartitionConfig[];
+    }) => Promise<{ success: boolean }>;
+    deleteGroups: (groupIds: string[]) => Promise<DeleteGroupsResult[]>;
 }

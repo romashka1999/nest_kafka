@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { Admin, ITopicConfig, Kafka } from 'kafkajs';
+import { Admin, ITopicConfig, ITopicPartitionConfig, Kafka } from 'kafkajs';
 
 import { IAdmin } from '../../contract';
 import { sleep } from '../../../utils/sleep';
@@ -18,13 +18,8 @@ export class KafkajsAdmin implements IAdmin {
         this.logger = new Logger('admin');
     }
 
-    async getAllGroups() {
-        const { groups } = await this.admin.listGroups();
-        return groups;
-    }
-
-    getAllTopics() {
-        return this.admin.listTopics();
+    deleteGroups(groupIds: string[]) {
+        return this.admin.deleteGroups(groupIds);
     }
 
     async createTopics(options: {
@@ -46,6 +41,16 @@ export class KafkajsAdmin implements IAdmin {
         this.admin.describeCluster();
     }
 
+    async createPartitionsOnTopic(options: {
+        validateOnly?: boolean;
+        timeout?: number;
+        topicPartitions: ITopicPartitionConfig[];
+    }) {
+        const success = await this.admin.createPartitions({ ...options });
+
+        return { success };
+    }
+
     async getInfo(inputGroupIds?: string[]) {
         const groupIds = inputGroupIds || (await this.getAllGroups()).map((g) => g.groupId);
 
@@ -58,6 +63,15 @@ export class KafkajsAdmin implements IAdmin {
             cluster,
             groups,
         };
+    }
+
+    async getAllGroups() {
+        const { groups } = await this.admin.listGroups();
+        return groups;
+    }
+
+    getAllTopics() {
+        return this.admin.listTopics();
     }
 
     async connect() {
