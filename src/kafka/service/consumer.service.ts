@@ -2,7 +2,7 @@ import { Injectable, OnApplicationShutdown } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ConsumerConfig, ConsumerSubscribeTopic, KafkaMessage } from 'kafkajs';
 
-import { KafkajsConsumer } from '.';
+import { KafkajsConsumer } from './kafkajs';
 import { IConsumer } from '../contract';
 import { DatabaseService } from '../../database/database.service';
 
@@ -24,6 +24,7 @@ export class ConsumerService implements OnApplicationShutdown {
             this.databaserService,
             config,
             this.configService.get('KAFKA_BROKER'),
+            this.configService.get('APP_NAME'),
         );
         await consumer.connect();
         await consumer.consume(onMessage);

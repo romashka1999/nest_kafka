@@ -2,9 +2,9 @@ import { Logger } from '@nestjs/common';
 import { Consumer, ConsumerConfig, ConsumerSubscribeTopic, Kafka, KafkaMessage } from 'kafkajs';
 import * as retry from 'async-retry';
 
-import { sleep } from '../../utils/sleep';
-import { IConsumer } from '../contract';
-import { DatabaseService } from '../../database/database.service';
+import { sleep } from '../../../utils/sleep';
+import { IConsumer } from '../../contract';
+import { DatabaseService } from '../../../database/database.service';
 
 export class KafkajsConsumer implements IConsumer {
     private readonly kafka: Kafka;
@@ -16,8 +16,9 @@ export class KafkajsConsumer implements IConsumer {
         private readonly databaseService: DatabaseService,
         config: ConsumerConfig,
         broker: string,
+        clientId: string,
     ) {
-        this.kafka = new Kafka({ brokers: [broker] });
+        this.kafka = new Kafka({ brokers: [broker], clientId });
         this.consumer = this.kafka.consumer(config);
         this.logger = new Logger(`${consumerSubscribeTopic.topic}-${config.groupId}`);
     }
