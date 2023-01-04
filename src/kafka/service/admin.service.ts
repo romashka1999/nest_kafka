@@ -10,7 +10,12 @@ export class AdminService implements OnApplicationShutdown {
 
     constructor(private readonly configService: ConfigService) {}
 
-    async printInfo(opt: { printTopics: boolean; printGroups: boolean; printInfo: boolean }) {
+    async printInfo(opt: {
+        printTopics: boolean;
+        printGroups: boolean;
+        printInfo: boolean;
+        printTopicsMetadata: boolean;
+    }) {
         const admin = new KafkajsAdmin(this.configService.get('KAFKA_BROKER'), this.configService.get('APP_NAME'));
         await admin.connect();
 
@@ -27,6 +32,11 @@ export class AdminService implements OnApplicationShutdown {
         if (opt.printInfo) {
             const info = await admin.getInfo();
             console.log('info :>> ', info, '\n', '='.repeat(60));
+        }
+
+        if (opt.printTopicsMetadata) {
+            const topicsMetadata = await admin.getTopicsMetadata({});
+            console.log('topicsMetadata :>> ', topicsMetadata, '\n', '='.repeat(60));
         }
 
         this.admins.push(admin);

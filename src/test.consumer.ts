@@ -7,7 +7,12 @@ export class TestConsumer implements OnModuleInit {
     constructor(private readonly consumerService: ConsumerService, private readonly adminService: AdminService) {}
 
     async onModuleInit() {
-        await this.adminService.printInfo({ printTopics: true, printGroups: true, printInfo: true });
+        await this.adminService.printInfo({
+            printTopics: true,
+            printGroups: true,
+            printInfo: true,
+            printTopicsMetadata: true,
+        });
 
         await this.consumerService.consume({
             topic: { topic: 'test' },

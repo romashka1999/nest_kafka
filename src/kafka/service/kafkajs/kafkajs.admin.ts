@@ -18,6 +18,14 @@ export class KafkajsAdmin implements IAdmin {
         this.logger = new Logger('admin');
     }
 
+    async getTopicsMetadata(params: { topics?: string[] }) {
+        const requestedTopics = params.topics || (await this.getAllTopics());
+
+        const { topics } = await this.admin.fetchTopicMetadata({ topics: requestedTopics });
+
+        return topics;
+    }
+
     deleteGroups(groupIds: string[]) {
         return this.admin.deleteGroups(groupIds);
     }

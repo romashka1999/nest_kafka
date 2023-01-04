@@ -1,8 +1,9 @@
-import { DeleteGroupsResult, GroupDescriptions, ITopicConfig, ITopicPartitionConfig } from 'kafkajs';
+import { DeleteGroupsResult, GroupDescriptions, ITopicConfig, ITopicMetadata, ITopicPartitionConfig } from 'kafkajs';
 
 export interface IAdmin {
     connect: () => Promise<void>;
     disconnect: () => Promise<void>;
+    getTopicsMetadata: (params: { topics?: string[] }) => Promise<ITopicMetadata[]>;
     getAllTopics: () => Promise<string[]>;
     getAllGroups: () => Promise<{ groupId: string; protocolType: string }[]>;
     createTopics: (options: {
