@@ -24,15 +24,17 @@ export class KafkajsConsumer implements IConsumer {
     ) {
         this.kafka = new Kafka({ brokers: [broker], clientId });
         this.consumer = this.kafka.consumer(consumerConfig);
-        this.logger = new Logger(`${consumerSubscribeTopics.topics.join(' , ')}-${consumerConfig.groupId}`);
+        this.logger = new Logger(`${consumerSubscribeTopics.topics.join(',')}---${consumerConfig.groupId}`);
     }
 
     async consume(runConfig: ConsumerRunConfig) {
+        this.logger.log('Started consuming');
         await this.consumer.subscribe(this.consumerSubscribeTopics);
         await this.consumer.run(runConfig);
     }
 
     async commitOffsets(topicPartitions: TopicPartitionOffsetAndMetadata[]) {
+        this.logger.debug('Commit offsets to ' + JSON.stringify(topicPartitions));
         await this.consumer.commitOffsets(topicPartitions);
     }
 

@@ -5,7 +5,7 @@ import { AdminService, ConsumerService } from './kafka/service';
 @Injectable()
 export class TestConsumer implements OnModuleInit {
     private readonly groupId = 'test-consumer';
-    private readonly topics = ['test1', 'test2', 'test3'];
+    private readonly topics = ['test', 'test2', 'test3'];
 
     constructor(private readonly consumerService: ConsumerService, private readonly adminService: AdminService) {}
 

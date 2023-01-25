@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { Kafka, Message, Producer } from 'kafkajs';
+import { Kafka, Message, Partitioners, Producer } from 'kafkajs';
 
 import { IProducer } from '../../contract';
 import { sleep } from '../../../utils/sleep';
@@ -14,11 +14,12 @@ export class KafkajsProducer implements IProducer {
             brokers: [broker],
             clientId,
         });
-        this.producer = this.kafka.producer();
-        this.logger = new Logger(topic);
+        this.producer = this.kafka.producer({ createPartitioner: Partitioners.DefaultPartitioner });
+        this.logger = new Logger(KafkajsProducer.name);
     }
 
     produce({ messages, acks, timeout }: { messages: Message[]; acks?: number; timeout?: number }) {
+        this.logger.debug('Produced message ' + JSON.stringify(messages));
         return this.producer.send({ topic: this.topic, messages, acks, timeout });
     }
 

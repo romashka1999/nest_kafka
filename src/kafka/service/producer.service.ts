@@ -7,7 +7,7 @@ import { IProducer } from '../contract';
 
 @Injectable()
 export class ProducerService implements OnApplicationShutdown {
-    private readonly producers = new Map<string, IProducer>();
+    private producer: IProducer;
 
     constructor(private readonly configService: ConfigService) {}
 
@@ -26,7 +26,7 @@ export class ProducerService implements OnApplicationShutdown {
     }
 
     private async getProducer(topic: string) {
-        let kafkajsProducer = this.producers.get(topic);
+        let kafkajsProducer = this.producer;
         if (!kafkajsProducer) {
             kafkajsProducer = new KafkajsProducer(
                 topic,
@@ -34,14 +34,12 @@ export class ProducerService implements OnApplicationShutdown {
                 this.configService.get('APP_NAME'),
             );
             await kafkajsProducer.connect();
-            this.producers.set(topic, kafkajsProducer);
+            this.producer = kafkajsProducer;
         }
         return kafkajsProducer;
     }
 
     async onApplicationShutdown() {
-        for (const producer of this.producers.values()) {
-            await producer.disconnect();
-        }
+        await this.producer.disconnect();
     }
 }
