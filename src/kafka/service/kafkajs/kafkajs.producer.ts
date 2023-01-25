@@ -18,8 +18,8 @@ export class KafkajsProducer implements IProducer {
         this.logger = new Logger(topic);
     }
 
-    async produce(message: Message) {
-        await this.producer.send({ topic: this.topic, messages: [message] });
+    produce({ messages, acks, timeout }: { messages: Message[]; acks?: number; timeout?: number }) {
+        return this.producer.send({ topic: this.topic, messages, acks, timeout });
     }
 
     async connect() {

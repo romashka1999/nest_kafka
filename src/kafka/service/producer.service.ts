@@ -11,23 +11,32 @@ export class ProducerService implements OnApplicationShutdown {
 
     constructor(private readonly configService: ConfigService) {}
 
-    async produce(topic: string, message: Message) {
+    async produce(topic: string, messages: Message | Message[], options?: { acks?: number; timeout?: number }) {
         const producer = await this.getProducer(topic);
-        await producer.produce(message);
+
+        let msgs: Message[];
+
+        if (Array.isArray(messages)) {
+            msgs = messages;
+        } else {
+            msgs = [messages];
+        }
+
+        await producer.produce({ messages: msgs, ...options });
     }
 
     private async getProducer(topic: string) {
-        let producer = this.producers.get(topic);
-        if (!producer) {
-            producer = new KafkajsProducer(
+        let kafkajsProducer = this.producers.get(topic);
+        if (!kafkajsProducer) {
+            kafkajsProducer = new KafkajsProducer(
                 topic,
                 this.configService.get('KAFKA_BROKER'),
                 this.configService.get('APP_NAME'),
             );
-            await producer.connect();
-            this.producers.set(topic, producer);
+            await kafkajsProducer.connect();
+            this.producers.set(topic, kafkajsProducer);
         }
-        return producer;
+        return kafkajsProducer;
     }
 
     async onApplicationShutdown() {

@@ -19,13 +19,19 @@ export class TestConsumer implements OnModuleInit {
             consumerConfig: { groupId: 'test-consumer', allowAutoTopicCreation: true },
             runConfig: {
                 eachMessage: async ({ topic, partition, message }) => {
-                    console.log({
-                        value: message.value.toString(),
-                    });
+                    const messageHeaders = message.headers;
+                    const messageOffset = message.offset;
+                    const messageKey = message.key?.toString();
+                    const messageValue = JSON.parse(message.value?.toString());
+
+                    console.log('messageHeaders :>>', messageHeaders);
+                    console.log('messageOffset :>>', messageOffset);
+                    console.log('messageKey :>>', messageKey);
+                    console.log('messageHeaders :>>', messageValue);
 
                     await this.consumerService.commitOffsets({
                         consumerId,
-                        topicPartitions: [{ topic, partition, offset: message.offset }],
+                        topicPartitions: [{ topic, partition, offset: messageOffset }],
                     });
                 },
                 autoCommit: false,
