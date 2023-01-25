@@ -1,7 +1,6 @@
 import { Injectable, OnApplicationShutdown } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ConsumerConfig, ConsumerRunConfig, ConsumerSubscribeTopics, TopicPartitionOffsetAndMetadata } from 'kafkajs';
-import { v4 as uuidV4 } from 'uuid';
 
 import { KafkajsConsumer } from './kafkajs';
 import { IConsumer } from '../contract';
@@ -19,6 +18,12 @@ export class ConsumerService implements OnApplicationShutdown {
     constructor(private readonly configService: ConfigService) {}
 
     async consume({ topics, consumerConfig, runConfig }: KafkajsConsumerOptions) {
+        const groupId = consumerConfig.groupId;
+
+        if (this.consumersHashMap.has(groupId)) {
+            throw new Error(`Consumer with groupId: ${groupId} already exists`);
+        }
+
         const kafkajsConsumer = new KafkajsConsumer(
             topics,
             consumerConfig,
@@ -29,22 +34,13 @@ export class ConsumerService implements OnApplicationShutdown {
         await kafkajsConsumer.connect();
         await kafkajsConsumer.consume(runConfig);
 
-        let id: string = uuidV4();
-        while (this.consumersHashMap.has(id)) {
-            id = uuidV4();
-        }
-
-        this.consumersHashMap.set(id, kafkajsConsumer);
-
-        return {
-            consumerId: id,
-        };
+        this.consumersHashMap.set(groupId, kafkajsConsumer);
     }
 
-    async commitOffsets(params: { consumerId: string; topicPartitions: Array<TopicPartitionOffsetAndMetadata> }) {
-        const { consumerId, topicPartitions } = params;
+    async commitOffsets(params: { groupId: string; topicPartitions: Array<TopicPartitionOffsetAndMetadata> }) {
+        const { groupId, topicPartitions } = params;
 
-        const consumer = this.consumersHashMap.get(consumerId);
+        const consumer = this.consumersHashMap.get(groupId);
         await consumer.commitOffsets(topicPartitions);
     }
 
