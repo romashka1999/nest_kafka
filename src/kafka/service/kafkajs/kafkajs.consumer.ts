@@ -1,5 +1,12 @@
 import { Logger } from '@nestjs/common';
-import { Consumer, ConsumerConfig, ConsumerRunConfig, ConsumerSubscribeTopics, Kafka } from 'kafkajs';
+import {
+    Consumer,
+    ConsumerConfig,
+    ConsumerRunConfig,
+    ConsumerSubscribeTopics,
+    Kafka,
+    TopicPartitionOffsetAndMetadata,
+} from 'kafkajs';
 
 import { sleep } from '../../../utils/sleep';
 import { IConsumer } from '../../contract';
@@ -23,6 +30,10 @@ export class KafkajsConsumer implements IConsumer {
     async consume(runConfig: ConsumerRunConfig) {
         await this.consumer.subscribe(this.consumerSubscribeTopics);
         await this.consumer.run(runConfig);
+    }
+
+    async commitOffsets(topicPartitions: TopicPartitionOffsetAndMetadata[]) {
+        await this.consumer.commitOffsets(topicPartitions);
     }
 
     async connect() {

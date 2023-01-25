@@ -14,15 +14,21 @@ export class TestConsumer implements OnModuleInit {
             printTopicsMetadata: false,
         });
 
-        await this.consumerService.consume({
+        const { consumerId } = await this.consumerService.consume({
             topics: { topics: ['test'], fromBeginning: true },
             consumerConfig: { groupId: 'test-consumer', allowAutoTopicCreation: true },
             runConfig: {
-                eachMessage: async ({ message }) => {
+                eachMessage: async ({ topic, partition, message }) => {
                     console.log({
                         value: message.value.toString(),
                     });
+
+                    await this.consumerService.commitOffsets({
+                        consumerId,
+                        topicPartitions: [{ topic, partition, offset: message.offset }],
+                    });
                 },
+                autoCommit: false,
             },
         });
     }
