@@ -8,20 +8,21 @@ export class TestConsumer implements OnModuleInit {
 
     async onModuleInit() {
         await this.adminService.printInfo({
-            printTopics: true,
-            printGroups: true,
-            printInfo: true,
-            printTopicsMetadata: true,
+            printTopics: false,
+            printGroups: false,
+            printInfo: false,
+            printTopicsMetadata: false,
         });
 
         await this.consumerService.consume({
-            topic: { topic: 'test' },
-            config: { groupId: 'test-consumer' },
-            onMessage: async (message) => {
-                console.log({
-                    value: message.value.toString(),
-                });
-                // throw new Error('Test error!');
+            topics: { topics: ['test'], fromBeginning: true },
+            consumerConfig: { groupId: 'test-consumer', allowAutoTopicCreation: true },
+            runConfig: {
+                eachMessage: async ({ message }) => {
+                    console.log({
+                        value: message.value.toString(),
+                    });
+                },
             },
         });
     }

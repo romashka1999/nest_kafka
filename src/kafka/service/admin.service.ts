@@ -1,3 +1,4 @@
+import { inspect } from 'util';
 import { Injectable, OnApplicationShutdown } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -26,17 +27,22 @@ export class AdminService implements OnApplicationShutdown {
 
         if (opt.printGroups) {
             const allGroups = await admin.getAllGroups();
-            console.log('allGroups :>> ', allGroups, '\n', '='.repeat(60));
+            console.log('allGroups :>> ', inspect(allGroups, { depth: null, showHidden: true }), '\n', '='.repeat(60));
         }
 
         if (opt.printInfo) {
             const info = await admin.getInfo();
-            console.log('info :>> ', info, '\n', '='.repeat(60));
+            console.log('info :>> ', inspect(info, { depth: null, showHidden: true }), '\n', '='.repeat(60));
         }
 
         if (opt.printTopicsMetadata) {
             const topicsMetadata = await admin.getTopicsMetadata({});
-            console.log('topicsMetadata :>> ', topicsMetadata, '\n', '='.repeat(60));
+            console.log(
+                'topicsMetadata :>> ',
+                inspect(topicsMetadata, { depth: null, showHidden: true }),
+                '\n',
+                '='.repeat(60),
+            );
         }
 
         this.admins.push(admin);

@@ -1,10 +1,8 @@
 import { Logger } from '@nestjs/common';
-import { Consumer, ConsumerConfig, ConsumerSubscribeTopic, Kafka, KafkaMessage } from 'kafkajs';
-import * as retry from 'async-retry';
+import { Consumer, ConsumerConfig, ConsumerRunConfig, ConsumerSubscribeTopics, Kafka } from 'kafkajs';
 
 import { sleep } from '../../../utils/sleep';
 import { IConsumer } from '../../contract';
-import { DatabaseService } from '../../../database/database.service';
 
 export class KafkajsConsumer implements IConsumer {
     private readonly kafka: Kafka;
@@ -12,41 +10,19 @@ export class KafkajsConsumer implements IConsumer {
     private readonly logger: Logger;
 
     constructor(
-        private readonly consumerSubscribeTopic: ConsumerSubscribeTopic,
-        private readonly databaseService: DatabaseService,
-        config: ConsumerConfig,
+        private readonly consumerSubscribeTopics: ConsumerSubscribeTopics,
+        consumerConfig: ConsumerConfig,
         broker: string,
         clientId: string,
     ) {
         this.kafka = new Kafka({ brokers: [broker], clientId });
-        this.consumer = this.kafka.consumer(config);
-        this.logger = new Logger(`${consumerSubscribeTopic.topic}-${config.groupId}`);
+        this.consumer = this.kafka.consumer(consumerConfig);
+        this.logger = new Logger(`${consumerSubscribeTopics.topics.join(' , ')}-${consumerConfig.groupId}`);
     }
 
-    async consume(onMessage: (message: KafkaMessage) => Promise<void>) {
-        await this.consumer.subscribe(this.consumerSubscribeTopic);
-        await this.consumer.run({
-            eachMessage: async ({ message, partition, topic }) => {
-                this.logger.debug(`Processing message topic ${topic} partition: ${partition}`);
-                try {
-                    await retry(async () => onMessage(message), {
-                        retries: 3,
-                        onRetry: (error, attempt) =>
-                            this.logger.error(`Error consuming message, executing retry ${attempt}/3...`, error),
-                    });
-                } catch (err) {
-                    this.logger.error('Error consuming message. Adding to dead letter queue...', err);
-                    await this.addMessageToDlq(message);
-                }
-            },
-        });
-    }
-
-    private async addMessageToDlq(message: KafkaMessage) {
-        await this.databaseService
-            .getDbHandle()
-            .collection('dlq')
-            .insertOne({ value: message.value, topic: this.consumerSubscribeTopic.topic });
+    async consume(runConfig: ConsumerRunConfig) {
+        await this.consumer.subscribe(this.consumerSubscribeTopics);
+        await this.consumer.run(runConfig);
     }
 
     async connect() {
