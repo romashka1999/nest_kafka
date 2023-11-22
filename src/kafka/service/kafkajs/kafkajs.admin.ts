@@ -1,10 +1,9 @@
 import { Logger } from '@nestjs/common';
 import { Admin, ITopicConfig, ITopicPartitionConfig, Kafka } from 'kafkajs';
 
-import { IAdmin } from '../../contract';
 import { sleep } from '../../../utils/sleep';
 
-export class KafkajsAdmin implements IAdmin {
+export class KafkajsAdmin {
     private readonly kafka: Kafka;
     private readonly admin: Admin;
     private readonly logger: Logger;

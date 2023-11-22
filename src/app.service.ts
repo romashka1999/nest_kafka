@@ -8,14 +8,20 @@ export class AppService {
     constructor(private readonly producerService: ProducerService) {}
 
     async getHello() {
-        await this.producerService.produce('test', {
-            key: 'esarisKey',
-            value: JSON.stringify({ txt: 'Hello World' }),
-            headers: {
-                correlationId: uuidV4(),
-                version: '1',
+        const res = await this.producerService.produce(
+            'test',
+            {
+                key: 'esarisKey',
+                value: JSON.stringify({ txt: 'Hello World' }),
+                headers: {
+                    correlationId: uuidV4(),
+                    version: '1',
+                },
             },
-        });
-        return 'Hello World!';
+            {
+                acks: -1, // for "all", 1 for "leader", 0 for "none"
+            },
+        );
+        return res;
     }
 }

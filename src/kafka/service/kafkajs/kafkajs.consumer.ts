@@ -9,9 +9,8 @@ import {
 } from 'kafkajs';
 
 import { sleep } from '../../../utils/sleep';
-import { IConsumer } from '../../contract';
 
-export class KafkajsConsumer implements IConsumer {
+export class KafkajsConsumer {
     private readonly kafka: Kafka;
     private readonly consumer: Consumer;
     private readonly logger: Logger;

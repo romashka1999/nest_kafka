@@ -3,11 +3,10 @@ import { Injectable, OnApplicationShutdown } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { KafkajsAdmin } from './kafkajs';
-import { IAdmin } from '../contract';
 
 @Injectable()
 export class AdminService implements OnApplicationShutdown {
-    private readonly admins: IAdmin[] = [];
+    private readonly admins: KafkajsAdmin[] = [];
 
     constructor(private readonly configService: ConfigService) {}
 

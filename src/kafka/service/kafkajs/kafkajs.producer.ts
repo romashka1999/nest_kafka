@@ -1,26 +1,42 @@
 import { Logger } from '@nestjs/common';
-import { Kafka, Message, Partitioners, Producer } from 'kafkajs';
+import { Kafka, Partitioners, Producer, ProducerRecord } from 'kafkajs';
 
-import { IProducer } from '../../contract';
 import { sleep } from '../../../utils/sleep';
 
-export class KafkajsProducer implements IProducer {
+export class KafkajsProducer {
     private readonly kafka: Kafka;
     private readonly producer: Producer;
     private readonly logger: Logger;
 
-    constructor(private readonly topic: string, broker: string, clientId: string) {
+    constructor(broker: string, clientId: string) {
         this.kafka = new Kafka({
             brokers: [broker],
             clientId,
         });
-        this.producer = this.kafka.producer({ createPartitioner: Partitioners.DefaultPartitioner });
+        this.producer = this.kafka.producer({
+            createPartitioner: Partitioners.DefaultPartitioner,
+            idempotent: true, // idempotent: true: Enable idempotent producer. This ensures that messages sent to the broker are either successfully written or result in an error, avoiding duplicate writes.
+            maxInFlightRequests: 1, // maxInFlightRequests: Set the maximum number of unacknowledged requests the producer will allow.
+        });
         this.logger = new Logger(KafkajsProducer.name);
     }
 
-    produce({ messages, acks, timeout }: { messages: Message[]; acks?: number; timeout?: number }) {
-        this.logger.debug('Produced message ' + JSON.stringify(messages));
-        return this.producer.send({ topic: this.topic, messages, acks, timeout });
+    produce(producerRecord: ProducerRecord) {
+        this.logger.debug('Produced message ' + JSON.stringify(producerRecord.messages));
+        return this.producer.send(producerRecord);
+    }
+
+    async transaction(producerRecord: ProducerRecord) {
+        const transaction = await this.producer.transaction();
+
+        try {
+            await transaction.send(producerRecord);
+
+            await transaction.commit();
+        } catch (e) {
+            this.logger.error('Producer transaction failed ' + e);
+            await transaction.abort();
+        }
     }
 
     async connect() {

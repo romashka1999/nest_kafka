@@ -3,16 +3,15 @@ import { ConfigService } from '@nestjs/config';
 import { Message } from 'kafkajs';
 
 import { KafkajsProducer } from './kafkajs';
-import { IProducer } from '../contract';
 
 @Injectable()
 export class ProducerService implements OnApplicationShutdown {
-    private producer: IProducer;
+    private producer: KafkajsProducer;
 
     constructor(private readonly configService: ConfigService) {}
 
     async produce(topic: string, messages: Message | Message[], options?: { acks?: number; timeout?: number }) {
-        const producer = await this.getProducer(topic);
+        const producer = await this.getProducer();
 
         let msgs: Message[];
 
@@ -22,14 +21,13 @@ export class ProducerService implements OnApplicationShutdown {
             msgs = [messages];
         }
 
-        await producer.produce({ messages: msgs, ...options });
+        return producer.produce({ topic, messages: msgs, ...options });
     }
 
-    private async getProducer(topic: string) {
+    private async getProducer() {
         let kafkajsProducer = this.producer;
         if (!kafkajsProducer) {
             kafkajsProducer = new KafkajsProducer(
-                topic,
                 this.configService.get('KAFKA_BROKER'),
                 this.configService.get('APP_NAME'),
             );

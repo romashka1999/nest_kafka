@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { ConsumerConfig, ConsumerRunConfig, ConsumerSubscribeTopics, TopicPartitionOffsetAndMetadata } from 'kafkajs';
 
 import { KafkajsConsumer } from './kafkajs';
-import { IConsumer } from '../contract';
 
 interface KafkajsConsumerOptions {
     topics: ConsumerSubscribeTopics;
@@ -13,7 +12,7 @@ interface KafkajsConsumerOptions {
 
 @Injectable()
 export class ConsumerService implements OnApplicationShutdown {
-    private readonly consumersHashMap: Map<string, IConsumer> = new Map();
+    private readonly consumersHashMap: Map<string, KafkajsConsumer> = new Map();
 
     constructor(private readonly configService: ConfigService) {}
 
